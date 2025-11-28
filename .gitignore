@@ -1,0 +1,25 @@
+# Directorios de compilación y empaquetado
+/target/
+/bin/
+
+# Archivos JAR, WAR, EAR generados
+*.jar
+*.war
+*.ear
+
+# Logs
+*.log
+logs/
+
+# Entornos de desarrollo local (IDE)
+.idea/
+.vscode/
+*.iml
+
+# Bases de datos locales de desarrollo (H2)
+# Esto incluye la DB en modo archivo que usamos localmente
+*.mv.db 
+*.trace.db
+
+# Variables de entorno secretas (si usas un archivo .env o similar)
+.env
