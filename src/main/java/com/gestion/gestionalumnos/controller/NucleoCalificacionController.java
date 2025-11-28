@@ -11,6 +11,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/nucleos")
+@CrossOrigin(origins = "*")
 public class NucleoCalificacionController {
 
     private final NucleoCalificacionService nucleoService;

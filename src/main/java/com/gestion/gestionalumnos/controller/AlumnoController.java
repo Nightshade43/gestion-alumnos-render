@@ -13,6 +13,7 @@ import java.util.List;
  */
 @RestController // Combina @Controller y @ResponseBody
 @RequestMapping("/api/alumnos") // Mapea todas las peticiones a esta ruta base
+@CrossOrigin(origins = "*")
 public class AlumnoController {
 
     private final AlumnoService alumnoService;

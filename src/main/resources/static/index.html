@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Alumnos (Spring Boot API)</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
+        .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        h1, h2 { color: #333; border-bottom: 2px solid #ccc; padding-bottom: 10px; }
+        form div { margin-bottom: 10px; }
+        input[type="text"], button { padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 100%; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; cursor: pointer; margin-top: 10px; }
+        button:hover { background-color: #0056b3; }
+        #alumnosList { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        #alumnosList th, #alumnosList td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        #alumnosList th { background-color: #f2f2f2; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>👨‍🎓 Gestión de Alumnos</h1>
+
+    <h2>1. Crear Nuevo Alumno</h2>
+    <div id="message" class="success"></div>
+    <form id="createForm">
+        <div>
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" required>
+        </div>
+        <div>
+            <label for="apellido">Apellido:</label>
+            <input type="text" id="apellido" required>
+        </div>
+        <div>
+            <label for="email">Email:</label>
+            <input type="text" id="email" required>
+        </div>
+        <button type="submit">Guardar Alumno</button>
+    </form>
+
+    <hr style="margin: 30px 0;">
+
+    <h2>2. Alumnos Registrados</h2>
+    <table id="alumnosList">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre Completo</th>
+            <th>Email</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:8080/api/alumnos';
+    const alumnosListBody = document.querySelector('#alumnosList tbody');
+    const createForm = document.getElementById('createForm');
+    const messageDiv = document.getElementById('message');
+
+    // Función para mostrar mensajes
+    function showMessage(msg, type) {
+        messageDiv.className = type;
+        messageDiv.textContent = msg;
+        setTimeout(() => { messageDiv.textContent = ''; }, 3000);
+    }
+
+    // --- Cargar Alumnos ---
+    async function loadAlumnos() {
+        try {
+            const response = await fetch(API_URL);
+            if (!response.ok) {
+                throw new Error('Error al cargar los alumnos: ' + response.statusText);
+            }
+            const alumnos = await response.json();
+
+            alumnosListBody.innerHTML = ''; // Limpiar lista
+
+            alumnos.forEach(alumno => {
+                const row = alumnosListBody.insertRow();
+                row.insertCell(0).textContent = alumno.id;
+                row.insertCell(1).textContent = `${alumno.nombre} ${alumno.apellido}`;
+                row.insertCell(2).textContent = alumno.email;
+            });
+        } catch (error) {
+            showMessage(`Error de conexión: ${error.message}`, 'error');
+            console.error(error);
+        }
+    }
+
+    // --- Crear Nuevo Alumno ---
+    createForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const nuevoAlumno = {
+            nombre: document.getElementById('nombre').value,
+            apellido: document.getElementById('apellido').value,
+            email: document.getElementById('email').value
+        };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(nuevoAlumno)
+            });
+
+            if (response.status === 201) {
+                showMessage('Alumno creado exitosamente (ID: ' + (await response.json()).id + ')', 'success');
+                createForm.reset();
+                loadAlumnos(); // Recargar la lista
+            } else if (response.status === 409) {
+                // Manejo del error de negocio (ej. email duplicado)
+                const errorData = await response.json();
+                showMessage('Error (409 Conflict): ' + errorData.message, 'error');
+            } else {
+                throw new Error(`Error ${response.status}: Revise la consola.`);
+            }
+
+        } catch (error) {
+            showMessage(`Error al guardar: ${error.message}`, 'error');
+            console.error(error);
+        }
+    });
+
+    // Cargar alumnos al inicio
+    document.addEventListener('DOMContentLoaded', loadAlumnos);
+</script>
+
+</body>
+</html>
